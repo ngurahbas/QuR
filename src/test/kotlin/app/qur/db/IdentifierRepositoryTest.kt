@@ -3,21 +3,18 @@ package app.qur.db
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection
+import org.springframework.context.annotation.Import
 import org.testcontainers.containers.PostgreSQLContainer
-import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import reactor.test.StepVerifier
 
 @SpringBootTest
+@Import(TestContainersConfig::class)
 @Testcontainers
 class IdentifierRepositoryTest {
 
-    companion object {
-        @Container
-        @ServiceConnection
-        val postgresContainer = PostgreSQLContainer("postgres:15-alpine")
-    }
+    @Autowired
+    lateinit var postgresContainer: PostgreSQLContainer<*>
     
     @Autowired
     lateinit var repository: IdentifierRepository
