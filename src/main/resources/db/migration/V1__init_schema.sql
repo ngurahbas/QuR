@@ -10,7 +10,7 @@ $$ language plpgsql;
 create table identifier
 (
     id         bigserial primary key,
-    type       varchar(10) check ( type in ('email', 'mobile')) not null,
+    type       varchar(10) check ( type in ('EMAIL', 'MOBILE')) not null,
     value      varchar(255)                                     not null,
     created_at TIMESTAMPTZ                                      NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ                                      NOT NULL DEFAULT now()
