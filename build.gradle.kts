@@ -3,7 +3,7 @@ plugins {
 	kotlin("plugin.spring") version "2.3.0"
 	id("org.springframework.boot") version "4.0.1"
 	id("io.spring.dependency-management") version "1.1.7"
-	id("org.graalvm.buildtools.native") version "0.11.3"
+
 }
 
 group = "app"
@@ -29,10 +29,12 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
 	testImplementation("org.testcontainers:testcontainers-junit-jupiter")
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
-	testImplementation("org.testcontainers:postgresql")
+	testImplementation("org.testcontainers:postgresql:1.21.4")
+	testImplementation("org.testcontainers:r2dbc:1.21.4")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+	testImplementation("io.projectreactor:reactor-test")
 	runtimeOnly("org.postgresql:postgresql")
 	runtimeOnly("org.postgresql:r2dbc-postgresql")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
