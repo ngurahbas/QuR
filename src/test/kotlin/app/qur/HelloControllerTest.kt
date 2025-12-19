@@ -3,6 +3,7 @@ package app.qur
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
 
 class HelloControllerTest {
 
@@ -19,7 +20,7 @@ class HelloControllerTest {
             .uri("/hello")
             .exchange()
             .expectStatus().isOk
-            .expectBody(String::class.java)
+            .expectBody<String>()
             .isEqualTo("Hello, World!")
     }
 }
