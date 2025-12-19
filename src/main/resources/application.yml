@@ -1,3 +1,8 @@
 spring:
   application:
     name: QuR
+  datasource:
+    url: jdbc:postgresql://localhost:5432/qur_db
+    username: qur_user
+    password: qur_password
+    driver-class-name: org.postgresql.Driver

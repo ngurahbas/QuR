@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   postgres:
-    image: postgres:latest
+    image: postgres:18.1
     environment:
       POSTGRES_USER: qur_user
       POSTGRES_PASSWORD: qur_password
@@ -10,13 +8,8 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U qur_user"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - postgres_qur_data:/var/lib/postgresql
     restart: unless-stopped
 
 volumes:
-  postgres_data:
+  postgres_qur_data:
