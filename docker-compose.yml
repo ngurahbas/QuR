@@ -39,6 +39,16 @@ services:
     restart: unless-stopped
     command: start-dev
 
+  keycloak-init:
+    image: alpine/curl:latest
+    depends_on:
+      - keycloak
+    volumes:
+      - ./keycloak/setup-keycloak.sh:/tmp/setup-keycloak.sh:ro
+    command: >
+      sh -c "sh /tmp/setup-keycloak.sh"
+    restart: "no"
+
 volumes:
   postgres_qur_data:
   keycloak_postgres_data:
