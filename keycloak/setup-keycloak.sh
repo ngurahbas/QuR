@@ -7,6 +7,8 @@ USERNAME="user1"
 PASSWORD="password1"
 CLIENT_ID="qur-client"
 CLIENT_SECRET="tItZt1hOUxxNFFaeuvL35r0lQZva3et6"
+FIRST_NAME="User"
+LAST_NAME="One"
 
 # Wait for Keycloak
 until curl -s "${KEYCLOAK_URL}/realms/master/.well-known/openid-configuration" > /dev/null; do sleep 2; done
@@ -32,7 +34,14 @@ fi
 if [ "$(curl -s -H "Authorization: Bearer ${TOKEN}" "${KEYCLOAK_URL}/admin/realms/${REALM}/users?username=${USERNAME}")" == "[]" ]; then
   curl -s -X POST "${KEYCLOAK_URL}/admin/realms/${REALM}/users" \
     -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" \
-    -d "{\"username\": \"${USERNAME}\", \"enabled\": true, \"email\": \"${USERNAME}@example.com\", \"emailVerified\": true, \"credentials\": [{\"type\": \"password\", \"value\": \"${PASSWORD}\", \"temporary\": false}]}"
+    -d "{\"username\": \"${USERNAME}\", \"enabled\": true, \"firstName\": \"${FIRST_NAME}\", \"lastName\": \"${LAST_NAME}\", \"requiredActions\": [], \"email\": \"${USERNAME}@example.com\", \"emailVerified\": true, \"credentials\": [{\"type\": \"password\", \"value\": \"${PASSWORD}\", \"temporary\": false}]}"
+fi
+
+USER_ID=$(curl -s -H "Authorization: Bearer ${TOKEN}" "${KEYCLOAK_URL}/admin/realms/${REALM}/users?username=${USERNAME}" | sed -n 's/.*"id"[ ]*:[ ]*"\([^"]*\)".*/\1/p' | head -n 1)
+if [ -n "${USER_ID}" ]; then
+  curl -s -X PUT "${KEYCLOAK_URL}/admin/realms/${REALM}/users/${USER_ID}" \
+    -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" \
+    -d "{\"firstName\": \"${FIRST_NAME}\", \"lastName\": \"${LAST_NAME}\", \"requiredActions\": []}" > /dev/null
 fi
 
 echo "Keycloak setup complete - user: ${USERNAME}/${PASSWORD}"
