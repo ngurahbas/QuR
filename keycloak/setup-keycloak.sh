@@ -6,6 +6,7 @@ REALM="qur"
 USERNAME="user1"
 PASSWORD="password1"
 CLIENT_ID="qur-client"
+CLIENT_SECRET="tItZt1hOUxxNFFaeuvL35r0lQZva3et6"
 
 # Wait for Keycloak
 until curl -s "${KEYCLOAK_URL}/realms/master/.well-known/openid-configuration" > /dev/null; do sleep 2; done
@@ -24,7 +25,7 @@ fi
 if [ "$(curl -s -H "Authorization: Bearer ${TOKEN}" "${KEYCLOAK_URL}/admin/realms/${REALM}/clients?clientId=${CLIENT_ID}")" == "[]" ]; then
   curl -s -X POST "${KEYCLOAK_URL}/admin/realms/${REALM}/clients" \
     -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" \
-    -d "{\"clientId\": \"${CLIENT_ID}\", \"enabled\": true, \"directAccessGrantsEnabled\": true, \"redirectUris\": [\"http://localhost:8080/*\"]}"
+    -d "{\"clientId\": \"${CLIENT_ID}\", \"enabled\": true, \"publicClient\": false, \"secret\": \"${CLIENT_SECRET}\", \"standardFlowEnabled\": true, \"directAccessGrantsEnabled\": true, \"redirectUris\": [\"http://localhost:8080/*\"], \"webOrigins\": [\"http://localhost:8080\"]}"
 fi
 
 # Create user if not exists
