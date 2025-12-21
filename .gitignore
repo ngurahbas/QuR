@@ -38,3 +38,6 @@ out/
 
 ### Kotlin ###
 .kotlin
+
+#generated
+src/main/resources/static/css/tailwind.css

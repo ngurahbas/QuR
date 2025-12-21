@@ -48,6 +48,26 @@ kotlin {
 	}
 }
 
+tasks.register<Exec>("compileTailwind") {
+	group = "build"
+	description = "Compile and minify Tailwind CSS"
+	workingDir = projectDir
+	commandLine = listOf(
+		"bunx", "tailwindcss", 
+		"--input", "tailwind.src.css", 
+		"--output", "src/main/resources/static/css/tailwind.css",
+		"--minify"
+	)
+	
+	doFirst {
+		mkdir("src/main/resources/static/css")
+	}
+}
+
+tasks.named("processResources") {
+	dependsOn("compileTailwind")
+}
+
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
