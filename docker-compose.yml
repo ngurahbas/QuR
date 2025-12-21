@@ -46,7 +46,7 @@ services:
     depends_on:
       - keycloak
     volumes:
-      - ./keycloak/setup-keycloak.sh:/tmp/setup-keycloak.sh:ro
+      - ./keycloak/setup-keycloak.sh:/tmp/setup-keycloak.sh:z
     command: >
       sh -c "sh /tmp/setup-keycloak.sh"
     restart: "no"
