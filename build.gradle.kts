@@ -54,7 +54,7 @@ tasks.register<Exec>("compileTailwind") {
 	description = "Compile and minify Tailwind CSS"
 	workingDir = projectDir
 	commandLine = listOf(
-		"bunx", "tailwindcss", 
+		"node_modules/.bin/tailwindcss",
 		"--input", "tailwind.src.css", 
 		"--output", "src/main/resources/static/css/tailwind.css",
 		"--minify"
