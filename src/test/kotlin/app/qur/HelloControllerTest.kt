@@ -1,5 +1,6 @@
 package app.qur
 
+import app.qur.web.HelloController
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.test.web.reactive.server.WebTestClient
