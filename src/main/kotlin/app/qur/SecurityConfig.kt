@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.web.server.SecurityWebFilterChain
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers.pathMatchers
 
 @Configuration
 class SecurityConfig {
@@ -12,10 +13,13 @@ class SecurityConfig {
         return http
             .authorizeExchange { exchanges ->
                 exchanges
-                    .pathMatchers("/", "/error").permitAll()
+                    .pathMatchers("/", "/login", "/error", "/css/**", "/js/**", "/images/**").permitAll()
                     .anyExchange().authenticated()
             }
-            .oauth2Login { }
+            .oauth2Login { oauth2 ->
+                oauth2
+                    .loginPage("/login")
+            }
             .oauth2Client { }
             .csrf { csrf -> csrf.disable() }
             .build()
