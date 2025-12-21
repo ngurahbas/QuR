@@ -1,6 +1,7 @@
 # Assumptions
   - bun is installed
   - GraalVM version 25 is installed
+  - bun already installed tailwindcss @tailwindcss/cli
 # Tech stack
   - Spring Boot Kotlin
   - JTE KTE
