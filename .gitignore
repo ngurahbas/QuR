@@ -41,3 +41,6 @@ out/
 
 #generated
 src/main/resources/static/css/tailwind.css
+
+#bun related
+node_modules
