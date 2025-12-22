@@ -4,4 +4,21 @@ spring:
     username: test_user
     password: test_password
   flyway:
-    enabled: true
+    enabled: false
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8081/realms/qur
+        registration:
+          keycloak:
+            provider: keycloak
+            client-id: qur-client
+            client-secret: tItZt1hOUxxNFFaeuvL35r0lQZva3et6
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope:
+              - openid
+              - profile
+              - email
