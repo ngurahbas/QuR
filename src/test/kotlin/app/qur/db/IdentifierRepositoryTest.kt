@@ -20,20 +20,20 @@ class IdentifierRepositoryTest {
     lateinit var repository: IdentifierRepository
 
     @Test
-    fun `insert should return generated ID and create record`() {
-        repository.insert(IdentifierType.EMAIL, "test@example.com")
+    fun `upsert should return generated ID and create record`() {
+        repository.upsert(IdentifierType.EMAIL, "test@example.com")
             .`as`(StepVerifier::create)
             .expectNextMatches { id -> id > 0 }
             .verifyComplete()
     }
 
     @Test
-    fun `findById should retrieve inserted record`() {
+    fun `upsert should retrieve inserted record`() {
         // Insert a record first
-        val insertResult = repository.insert(IdentifierType.MOBILE, "+1234567890")
+        val upsertResult = repository.upsert(IdentifierType.MOBILE, "+1234567890")
         
         // Then retrieve it and verify
-        insertResult.flatMap { generatedId ->
+        upsertResult.flatMap { generatedId ->
             repository.findById(generatedId)
         }
         .`as`(StepVerifier::create)
@@ -42,6 +42,21 @@ class IdentifierRepositoryTest {
             identifier.value == "+1234567890"
         }
         .verifyComplete()
+    }
+
+    @Test
+    fun `upsert should return existing ID for duplicate data`() {
+        // First insert creates a new record
+        repository.upsert(IdentifierType.EMAIL, "duplicate@example.com")
+            .`as`(StepVerifier::create)
+            .expectNextMatches { id -> id > 0 }
+            .verifyComplete()
+        
+        // Second insert with same data should return the same ID
+        repository.upsert(IdentifierType.EMAIL, "duplicate@example.com")
+            .`as`(StepVerifier::create)
+            .expectNextMatches { id -> id > 0 }
+            .verifyComplete()
     }
 
     @Test
