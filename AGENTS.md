@@ -1,7 +1,6 @@
 # Assumptions
-  - bun is installed
+  - npm is installed
   - GraalVM version 25 is installed
-  - bun already installed tailwindcss @tailwindcss/cli
 # Tech stack
   - Spring Boot Kotlin
   - Mustache
@@ -11,3 +10,6 @@
   - Alpinejs
   - Tailwindcss
   - HTMX
+# Changes guidelines
+- create small changes
+- ask if needed changes is too big
