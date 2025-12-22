@@ -5,6 +5,11 @@ spring:
     url: r2dbc:postgresql://localhost:5432/qur_db
     username: qur_user
     password: qur_password
+  flyway:
+    url: jdbc:postgresql://localhost:5432/qur_db
+    user: qur_user
+    password: qur_password
+    locations: classpath:db/migration
   security:
     oauth2:
       client:
