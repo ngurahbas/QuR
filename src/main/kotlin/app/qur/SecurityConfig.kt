@@ -8,10 +8,6 @@ import org.springframework.security.web.server.authentication.RedirectServerAuth
 
 @Configuration
 class SecurityConfig {
-    @Bean
-    fun authenticationSuccessHandler(): RedirectServerAuthenticationSuccessHandler {
-        return RedirectServerAuthenticationSuccessHandler("/dashboard")
-    }
 
     @Bean
     fun springSecurityFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
@@ -23,7 +19,7 @@ class SecurityConfig {
             }
             .oauth2Login { oauth2 ->
                 oauth2.loginPage("/login")
-                oauth2.authenticationSuccessHandler(authenticationSuccessHandler())
+                    .authenticationSuccessHandler(RedirectServerAuthenticationSuccessHandler("/hello"))
             }
             .oauth2Client { }
             .csrf { csrf -> csrf.disable() }
