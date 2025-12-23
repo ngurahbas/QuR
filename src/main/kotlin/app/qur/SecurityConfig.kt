@@ -27,7 +27,7 @@ class SecurityConfig(
                     .anyExchange().authenticated()
             }
             .oauth2Login { oauth2 ->
-                oauth2.loginPage("/login")
+                oauth2.loginPage("/login") //TODO: somehow spring boot standard /login inconflict with app.qur.web.AuthController.login
                     .authenticationSuccessHandler(RedirectServerAuthenticationSuccessHandler("/hello"))
                     .authenticationConverter(object :
                         ServerOAuth2AuthorizationCodeAuthenticationTokenConverter(reactiveClientRegistrationRepository) {
