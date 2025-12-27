@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.core.Authentication
+import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthorizationCodeAuthenticationToken
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizationCodeAuthenticationTokenConverter
@@ -41,21 +42,26 @@ class SecurityConfig(
                                 } else {
                                     val email = oauth2User.getAttribute<String>("email") 
                                         ?: throw IllegalArgumentException("Email not found")
-                                    
-                                    val clientRegistration = token.clientRegistration
-                                    val authorizationExchange = token.authorizationExchange
-                                    val accessToken = token.accessToken
-                                    val refreshToken = token.refreshToken
-                                    val additionalParameters = token.additionalParameters
-                                    
-                                    object : OAuth2AuthorizationCodeAuthenticationToken(
-                                        clientRegistration,
-                                        authorizationExchange,
-                                        accessToken,
-                                        refreshToken,
-                                        additionalParameters
-                                    ) {
-                                        override fun getPrincipal(): Any = EmailPrincipal(email)
+
+                                    object : Authentication {
+                                        var _authenticated = true
+
+                                        override fun isAuthenticated() = _authenticated
+
+                                        override fun setAuthenticated(isAuthenticated: Boolean) {
+                                            _authenticated = isAuthenticated
+                                        }
+
+                                        override fun getName() = null
+
+                                        override fun getPrincipal() = EmailPrincipal(email)
+
+                                        override fun getAuthorities() = emptyList<GrantedAuthority>()
+
+                                        override fun getCredentials() = null
+
+                                        override fun getDetails() = null
+
                                     }
                                 }
                             }
