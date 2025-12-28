@@ -3,7 +3,7 @@ package app.qur.service
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.oauth2.core.oidc.user.OidcUser
 
-class CustomOidcUser(val email: String): OidcUser {
+data class CustomOidcUser(private val _email: String): OidcUser {
     override fun getClaims() = mapOf<String, Any>()
 
     override fun getUserInfo() = null
@@ -14,5 +14,5 @@ class CustomOidcUser(val email: String): OidcUser {
 
     override fun getAuthorities() = emptyList<GrantedAuthority>()
 
-    override fun getName() = email
+    override fun getName() = _email
 }
