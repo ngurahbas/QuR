@@ -15,6 +15,8 @@ import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.utility.DockerImageName
 import reactor.core.publisher.Mono
 import java.time.Duration
+import org.testcontainers.containers.wait.strategy.WaitStrategy
+import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy
 
 @TestConfiguration
 class TestContainersConfig {
@@ -35,6 +37,8 @@ class TestContainersConfig {
 
         return pgContainer
     }
+
+
 
     @Bean
     fun keycloakContainer(): GenericContainer<*> {

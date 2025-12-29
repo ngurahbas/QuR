@@ -30,6 +30,7 @@ dependencies {
 	implementation("org.flywaydb:flyway-database-postgresql")
 	implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
 	implementation("org.springframework.boot:spring-boot-starter-mustache")
+	implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
 	developmentOnly("org.springframework.boot:spring-boot-starter-actuator")
 	testImplementation("org.testcontainers:testcontainers-junit-jupiter")
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
