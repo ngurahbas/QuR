@@ -26,15 +26,7 @@ class AuthControllerTest {
     }
 
     @Test
-    fun `logins endpoint should return ok status`() {
-        webTestClient.get()
-            .uri("/logins")
-            .exchange()
-            .expectStatus().isOk
-    }
-
-    @Test
-    fun `logins endpoint should contain keycloak provider`() {
+    fun `logins endpoint should return correct response with all oauth providers`() {
         val body = webTestClient.get()
             .uri("/logins")
             .exchange()
@@ -45,36 +37,8 @@ class AuthControllerTest {
             .block()
             ?.joinToString("") ?: ""
 
-        assert(body.contains("Keycloak")) { "Response body should contain 'Keycloak'. Actual body length: ${body.length}, first 200 chars: ${body.take(200)}" }
-    }
-
-    @Test
-    fun `logins endpoint should contain oauth2 authorization url`() {
-        val body = webTestClient.get()
-            .uri("/logins")
-            .exchange()
-            .expectStatus().isOk
-            .returnResult(String::class.java)
-            .responseBody
-            .collectList()
-            .block()
-            ?.joinToString("") ?: ""
-
+        assert(body.contains("Keycloak")) { "Response body should contain 'Keycloak'" }
         assert(body.contains("/oauth2/authorization/keycloak")) { "Response body should contain OAuth2 authorization URL" }
-    }
-
-    @Test
-    fun `logins endpoint should contain continue with text`() {
-        val body = webTestClient.get()
-            .uri("/logins")
-            .exchange()
-            .expectStatus().isOk
-            .returnResult(String::class.java)
-            .responseBody
-            .collectList()
-            .block()
-            ?.joinToString("") ?: ""
-
         assert(body.contains("Continue with")) { "Response body should contain 'Continue with'" }
     }
 }
