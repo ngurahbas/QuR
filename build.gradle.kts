@@ -38,6 +38,8 @@ dependencies {
 	testImplementation("org.testcontainers:r2dbc:1.21.4")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	implementation("com.google.zxing:core:3.5.3")
+	implementation("com.google.zxing:javase:3.5.3")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testImplementation("io.projectreactor:reactor-test")
 	runtimeOnly("org.postgresql:postgresql")
