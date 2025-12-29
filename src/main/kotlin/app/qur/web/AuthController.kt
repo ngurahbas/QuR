@@ -7,8 +7,8 @@ import reactor.core.publisher.Mono
 @Controller
 class AuthController {
 
-    @GetMapping("/login")
+    @GetMapping("/logins")
     fun login(): Mono<String> {
-        return Mono.just("login")
+        return Mono.just("logins")
     }
 }
