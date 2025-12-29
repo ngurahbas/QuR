@@ -17,16 +17,10 @@ class TestContainersConfig {
     @Bean
     @ServiceConnection
     fun postgresContainer(): PostgreSQLContainer<*> {
-        val pgContainer = PostgreSQLContainer("postgres:15-alpine");
+        val pgContainer = PostgreSQLContainer("postgres:15-alpine")
+        pgContainer.start()
 
-        val r2dbcUrl =
-            "r2dbc:postgresql://${pgContainer.host}:${pgContainer.firstMappedPort}/${pgContainer.databaseName}"
-        System.setProperty("spring.r2dbc.url", r2dbcUrl)
-        System.setProperty("spring.r2dbc.username", pgContainer.username)
-        System.setProperty("spring.r2dbc.password", pgContainer.password)
-
-        logger.info("PostgreSQL TestContainer configured")
-        logger.info("R2DBC URL: {}", r2dbcUrl)
+        logger.info("PostgreSQL TestContainer configured and started")
         logger.info("Database Name: {}", pgContainer.databaseName)
         logger.info("Username: {}", pgContainer.username)
         logger.info("Host: {}", pgContainer.host)
