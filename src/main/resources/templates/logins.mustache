@@ -20,9 +20,11 @@
                     <span class="font-medium">Continue with SMS</span>
                 </button>
 
-                <a href="/oauth2/authorization/keycloak" class="flex justify-center items-center py-3 px-4 w-full text-gray-900 bg-white rounded-lg border border-gray-300 border-l-4 border-l-indigo-500 shadow-md transition-all duration-200 hover:bg-gray-50 hover:shadow-lg focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none">
-                    <span class="font-medium">Continue with Keycloak</span>
+                {{#providers}}
+                <a href="{{url}}" class="flex justify-center items-center py-3 px-4 w-full text-gray-900 bg-white rounded-lg border border-gray-300 border-l-4 border-l-indigo-500 shadow-md transition-all duration-200 hover:bg-gray-50 hover:shadow-lg focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none">
+                    <span class="font-medium">Continue with {{displayName}}</span>
                 </a>
+                {{/providers}}
             </div>
             
             <div class="mt-6 text-center">
