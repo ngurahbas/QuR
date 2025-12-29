@@ -17,7 +17,7 @@ class TestContainersConfig {
     @Bean
     @ServiceConnection
     fun postgresContainer(): PostgreSQLContainer<*> {
-        val pgContainer = PostgreSQLContainer("postgres:15-alpine")
+        val pgContainer = PostgreSQLContainer("postgres:18.1-alpine")
         pgContainer.start()
 
         logger.info("PostgreSQL TestContainer configured and started")
