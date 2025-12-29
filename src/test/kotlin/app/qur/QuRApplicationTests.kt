@@ -14,5 +14,4 @@ class QuRApplicationTests {
 	@Test
 	fun contextLoads() {
 	}
-
 }

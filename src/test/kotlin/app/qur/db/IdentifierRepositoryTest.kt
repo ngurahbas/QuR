@@ -15,7 +15,7 @@ class IdentifierRepositoryTest {
 
     @Autowired
     lateinit var postgresContainer: PostgreSQLContainer<*>
-    
+
     @Autowired
     lateinit var repository: IdentifierRepository
 
@@ -29,30 +29,26 @@ class IdentifierRepositoryTest {
 
     @Test
     fun `upsert should retrieve inserted record`() {
-        // Insert a record first
         val upsertResult = repository.upsert(IdentifierType.MOBILE, "+1234567890")
-        
-        // Then retrieve it and verify
+
         upsertResult.flatMap { generatedId ->
             repository.findById(generatedId)
         }
-        .`as`(StepVerifier::create)
-        .expectNextMatches { identifier ->
-            identifier.type == IdentifierType.MOBILE &&
-            identifier.value == "+1234567890"
-        }
-        .verifyComplete()
+            .`as`(StepVerifier::create)
+            .expectNextMatches { identifier ->
+                identifier.type == IdentifierType.MOBILE &&
+                identifier.value == "+1234567890"
+            }
+            .verifyComplete()
     }
 
     @Test
     fun `upsert should return existing ID for duplicate data`() {
-        // First insert creates a new record
         repository.upsert(IdentifierType.EMAIL, "duplicate@example.com")
             .`as`(StepVerifier::create)
             .expectNextMatches { id -> id > 0 }
             .verifyComplete()
-        
-        // Second insert with same data should return the same ID
+
         repository.upsert(IdentifierType.EMAIL, "duplicate@example.com")
             .`as`(StepVerifier::create)
             .expectNextMatches { id -> id > 0 }
