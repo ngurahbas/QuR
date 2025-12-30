@@ -32,3 +32,19 @@ spring:
               - openid
               - profile
               - email
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY:changeme-minimum-32-characters-required-for-hs256-algorithm}
+  expiration-ms: 3600000
+  issuer: qur-app
+
+server:
+  servlet:
+    session:
+      cookie:
+        secure: ${COOKIE_SECURE:false}
+
+logging:
+  level:
+    app.qur.jwt: DEBUG
+    org.springframework.security: DEBUG
