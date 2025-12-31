@@ -47,7 +47,7 @@ class OAuth2LoginSuccessHandler(
 
         logger.info("JWT cookie set successfully")
 
-        val redirectUrl = URI.create("/hello")
+        val redirectUrl = URI.create("/dashboard")
         response.statusCode = org.springframework.http.HttpStatus.FOUND
         response.headers.location = redirectUrl
 
