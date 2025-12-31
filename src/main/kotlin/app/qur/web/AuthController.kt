@@ -1,6 +1,7 @@
 package app.qur.web
 
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.security.oauth2.client.registration.ClientRegistration
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
@@ -32,16 +33,15 @@ class AuthController(
 
         return Flux.fromIterable(registrationIds)
             .flatMap { registrationId ->
-                clientRegistrationRepository.findByRegistrationId(registrationId)
-                    .map { registration ->
-                        OAuth2Provider(
-                            registrationId = registration.registrationId,
-                            displayName = registration.registrationId.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() },
-                            url = "/oauth2/authorization/${registration.registrationId}"
-                        )
-                    }
+                clientRegistrationRepository.findByRegistrationId(registrationId).map { it.toOAuth2Provider() }
             }
             .collectList()
-            .map { providers -> Rendering.view("logins").modelAttribute("providers", providers).build() }
+            .map { Rendering.view("logins").modelAttribute("providers", it).build() }
     }
+
+    private fun ClientRegistration.toOAuth2Provider() = OAuth2Provider(
+        registrationId = registrationId,
+        displayName = registrationId.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() },
+        url = "/oauth2/authorization/$registrationId"
+    )
 }
