@@ -1,8 +1,7 @@
-package app.qur
+package app.qur.web
 
-import app.qur.web.HelloController
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 
