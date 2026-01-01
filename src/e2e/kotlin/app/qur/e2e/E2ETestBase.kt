@@ -28,9 +28,15 @@ abstract class E2ETestBase {
 			E2ETestBase::class.java.getResourceAsStream("/e2e.properties")?.use { load(it) }
 		}
 
+		val recordVideo = System.getenv("RECORD_VIDEO")?.toBoolean() ?: false
 		val headless = System.getenv("HEADLESS")?.toBoolean()
 			?: config.getProperty("playwright.headless", "true").toBoolean()
-		val slowMo = config.getProperty("playwright.slow-mo", "0").toDouble()
+		val slowMo = if (recordVideo) {
+			System.getenv("VIDEO_SLOW_MO")?.toDoubleOrNull()
+				?: config.getProperty("playwright.video.slow-mo", "100").toDouble()
+		} else {
+			config.getProperty("playwright.slow-mo", "0").toDouble()
+		}
 
 		playwright = Playwright.create()
 		browser = playwright.chromium().launch(
@@ -42,7 +48,18 @@ abstract class E2ETestBase {
 
 	@BeforeEach
 	fun setupContext() {
-		context = browser.newContext()
+		val recordVideo = System.getenv("RECORD_VIDEO")?.toBoolean() ?: false
+		val videoDir = System.getenv("VIDEO_DIR") ?: config.getProperty("playwright.video-dir", "build/videos")
+
+		val contextOptions = Browser.NewContextOptions()
+			.setViewportSize(1280, 720)
+
+		if (recordVideo) {
+			java.io.File(videoDir).mkdirs()
+			contextOptions.setRecordVideoDir(java.nio.file.Paths.get(videoDir))
+		}
+
+		context = browser.newContext(contextOptions)
 		page = context.newPage()
 		page.setDefaultTimeout(
 			config.getProperty("playwright.timeout", "30000").toDouble()
