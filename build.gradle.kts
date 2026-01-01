@@ -74,6 +74,46 @@ tasks.named("processResources") {
 	dependsOn("compileTailwind")
 }
 
+sourceSets {
+	create("e2e") {
+		kotlin.srcDir("src/e2e/kotlin")
+		resources.srcDir("src/e2e/resources")
+		compileClasspath += sourceSets.main.get().output
+		runtimeClasspath += sourceSets.main.get().output
+	}
+}
+
+val e2eImplementation by configurations.getting {
+	extendsFrom(configurations.implementation.get())
+}
+
+val e2eRuntimeOnly by configurations.getting {
+	extendsFrom(configurations.runtimeOnly.get())
+}
+
+dependencies {
+	e2eImplementation("com.microsoft.playwright:playwright:1.49.0")
+	e2eImplementation("org.junit.jupiter:junit-jupiter:5.11.0")
+	e2eImplementation("org.jetbrains.kotlin:kotlin-test")
+	e2eRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.register<Test>("e2eTest") {
+	group = "verification"
+	description = "Run E2E tests with Playwright"
+	testClassesDirs = sourceSets["e2e"].output.classesDirs
+	classpath = sourceSets["e2e"].runtimeClasspath
+	useJUnitPlatform()
+
+	environment("HEADLESS", System.getenv("HEADLESS") ?: "true")
+	environment("BASE_URL", System.getenv("BASE_URL") ?: "http://localhost:8080")
+	environment("KEYCLOAK_URL", System.getenv("KEYCLOAK_URL") ?: "http://localhost:8081")
+}
+
+tasks.named<Copy>("processE2eResources") {
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
 tasks.withType<Test> {
 	useJUnitPlatform()
 }

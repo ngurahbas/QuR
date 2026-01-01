@@ -6,8 +6,12 @@
     "type": "git",
     "url": "git+https://github.com/ngurahbas/QuR.git"
   },
+  "scripts": {
+    "install:playwright": "npx playwright install chromium"
+  },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.18",
-    "tailwindcss": "^4.1.18"
+    "tailwindcss": "^4.1.18",
+    "playwright": "^1.49.0"
   }
 }
