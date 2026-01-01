@@ -1,14 +1,12 @@
 package app.qur
 
-import app.qur.db.TestContainersConfig
+import app.qur.test.IntegrationTestConfig
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
-import org.testcontainers.junit.jupiter.Testcontainers
 
 @SpringBootTest
-@Import(TestContainersConfig::class)
-@Testcontainers
+@Import(IntegrationTestConfig::class)
 class QuRApplicationTests {
 
 	@Test
