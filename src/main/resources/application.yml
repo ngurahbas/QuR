@@ -33,11 +33,9 @@ spring:
               - profile
               - email
 
-server:
-  servlet:
-    session:
-      cookie:
-        secure: ${COOKIE_SECURE:false}
+jwt:
+  secret: ${JWT_SECRET:your-secret-key-please-change-this-in-production-must-be-at-least-256-bits}
+  expiration-hours: ${JWT_EXPIRATION_HOURS:24}
 
 logging:
   level:

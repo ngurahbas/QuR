@@ -1,13 +1,18 @@
 package app.qur
 
+import app.qur.security.JwtAuthenticationWebFilter
+import app.qur.security.JwtOAuth2SuccessHandler
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.web.server.SecurityWebFilterChain
-import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler
 
 @Configuration
-class SecurityConfig {
+class SecurityConfig(
+    private val jwtAuthenticationWebFilter: JwtAuthenticationWebFilter,
+    private val jwtOAuth2SuccessHandler: JwtOAuth2SuccessHandler
+) {
 
     @Bean
     fun springSecurityFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
@@ -18,8 +23,9 @@ class SecurityConfig {
                     .anyExchange().authenticated()
             }
             .oauth2Login { oauth2 ->
-                oauth2.authenticationSuccessHandler(RedirectServerAuthenticationSuccessHandler("/dashboard"))
+                oauth2.authenticationSuccessHandler(jwtOAuth2SuccessHandler)
             }
+            .addFilterAt(jwtAuthenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
             .csrf { csrf -> csrf.disable() }
             .build()
     }
