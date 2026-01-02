@@ -52,7 +52,7 @@ abstract class E2ETestBase {
 		val videoDir = System.getenv("VIDEO_DIR") ?: config.getProperty("playwright.video-dir", "build/videos")
 
 		val contextOptions = Browser.NewContextOptions()
-			.setViewportSize(1280, 720)
+			.setViewportSize(1600, 900)
 
 		if (recordVideo) {
 			java.io.File(videoDir).mkdirs()
