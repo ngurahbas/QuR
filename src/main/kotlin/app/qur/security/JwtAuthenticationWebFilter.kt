@@ -1,6 +1,5 @@
 package app.qur.security
 
-import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
@@ -16,8 +15,7 @@ class JwtAuthenticationWebFilter(
 ) : WebFilter {
 
     override fun filter(exchange: ServerWebExchange, chain: WebFilterChain): Mono<Void> {
-        val token = extractToken(exchange)
-
+        val token = exchange.request.cookies["jwt"]?.firstOrNull()?.value
         if (token != null && jwtService.validateToken(token)) {
             val claims = jwtService.extractClaims(token)
             val email = claims.subject
@@ -32,16 +30,6 @@ class JwtAuthenticationWebFilter(
         }
 
         return chain.filter(exchange)
-    }
-
-    private fun extractToken(exchange: ServerWebExchange): String? {
-        val authHeader = exchange.request.headers.getFirst(HttpHeaders.AUTHORIZATION)
-        return if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            authHeader.substring(7)
-        } else {
-            // Also check for JWT in cookie
-            exchange.request.cookies["jwt"]?.firstOrNull()?.value
-        }
     }
 }
 
