@@ -1,6 +1,6 @@
 package app.qur.web
 
-import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientProperties
 import org.springframework.security.oauth2.client.registration.ClientRegistration
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository
 import org.springframework.stereotype.Controller
@@ -10,16 +10,6 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 data class OAuth2Provider(val registrationId: String, val displayName: String, val url: String)
-
-@ConfigurationProperties(prefix = "spring.security.oauth2.client")
-data class OAuth2ClientProperties(
-    val registration: Map<String, Registration> = emptyMap()
-) {
-    data class Registration(
-        val provider: String? = null,
-        val clientId: String? = null
-    )
-}
 
 @Controller
 class AuthController(
