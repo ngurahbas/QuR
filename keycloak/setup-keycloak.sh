@@ -27,7 +27,7 @@ fi
 if [ "$(curl -s -H "Authorization: Bearer ${TOKEN}" "${KEYCLOAK_URL}/admin/realms/${REALM}/clients?clientId=${CLIENT_ID}")" == "[]" ]; then
   curl -s -X POST "${KEYCLOAK_URL}/admin/realms/${REALM}/clients" \
     -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" \
-    -d "{\"clientId\": \"${CLIENT_ID}\", \"enabled\": true, \"publicClient\": false, \"secret\": \"${CLIENT_SECRET}\", \"standardFlowEnabled\": true, \"directAccessGrantsEnabled\": true, \"redirectUris\": [\"http://localhost:8080/*\"], \"webOrigins\": [\"http://localhost:8080\"]}"
+    -d "{\"clientId\": \"${CLIENT_ID}\", \"enabled\": true, \"publicClient\": false, \"secret\": \"${CLIENT_SECRET}\", \"standardFlowEnabled\": true, \"directAccessGrantsEnabled\": true, \"redirectUris\": [\"*\"], \"webOrigins\": [\"*\"]}"
 fi
 
 # Create user if not exists
