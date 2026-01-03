@@ -37,8 +37,23 @@ class TestOAuth2Config {
     @Bean
     @Primary
     fun testOAuth2ClientProperties(): OAuth2ClientProperties {
-        return OAuth2ClientProperties(
-//TODO implementation pending
-        )
+        val properties = OAuth2ClientProperties()
+        
+        // Configure provider
+        val providerDetails = OAuth2ClientProperties.Provider()
+        providerDetails.issuerUri = "http://localhost:8080/realms/qur"
+        properties.provider["keycloak"] = providerDetails
+        
+        // Configure registration
+        val registrationDetails = OAuth2ClientProperties.Registration()
+        registrationDetails.provider = "keycloak"
+        registrationDetails.clientId = OAuth2MockServer.CLIENT_ID
+        registrationDetails.clientSecret = OAuth2MockServer.CLIENT_SECRET
+        registrationDetails.authorizationGrantType = "authorization_code"
+        registrationDetails.redirectUri = "{baseUrl}/login/oauth2/code/{registrationId}"
+        registrationDetails.scope = setOf("openid", "profile", "email")
+        properties.registration["keycloak"] = registrationDetails
+        
+        return properties
     }
 }
