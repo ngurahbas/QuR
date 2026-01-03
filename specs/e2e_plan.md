@@ -8,7 +8,7 @@ This plan establishes end-to-end testing for the QuR application using Playwrigh
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| Directory | `src/e2e/` | Separate from unit/integration tests |
+| Directory | `e2e/` (Gradle subproject) | Separate from main project, better IDE support |
 | Infrastructure | Real docker-compose services | No mocks, tests actual OAuth2 flow |
 | App Startup | Manual | Easier debugging, start app before tests |
 | Test Data | Keep state after tests | Faster iteration, can inspect data |
@@ -41,76 +41,76 @@ npm run install:playwright
 
 ```
 QuR/
-├── src/e2e/
-│   ├── kotlin/app/qur/e2e/
-│   │   ├── E2ETestBase.kt              # Base class with Playwright setup
-│   │   ├── pages/
-│   │   │   ├── LoginPage.kt            # /logins page object
-│   │   │   ├── KeycloakLoginPage.kt    # Keycloak login form
-│   │   │   └── DashboardPage.kt        # /dashboard page object
-│   │   ├── scenarios/
-│   │   │   └── AuthenticationFlowTest.kt  # Happy path test
-│   │   └── helpers/
-│   │       └── AuthHelper.kt           # Reusable login helper
-│   └── resources/
-│       └── e2e.properties              # Test configuration
+├── e2e/                                # Gradle subproject
+│   ├── build.gradle.kts                # E2E-specific build config
+│   └── src/test/
+│       ├── kotlin/app/qur/e2e/
+│       │   ├── E2ETestBase.kt              # Base class with Playwright setup
+│       │   ├── pages/
+│       │   │   ├── LoginPage.kt            # /logins page object
+│       │   │   ├── KeycloakLoginPage.kt    # Keycloak login form
+│       │   │   └── DashboardPage.kt        # /dashboard page object
+│       │   ├── scenarios/
+│       │   │   └── AuthenticationFlowTest.kt  # Happy path test
+│       │   └── helpers/
+│       │       └── AuthHelper.kt           # Reusable login helper
+│       └── resources/
+│           └── e2e.properties              # Test configuration
 ├── specs/
 │   └── e2e_plan.md                     # This document
-└── build.gradle.kts                    # Updated with e2e source set
+└── settings.gradle.kts                 # Includes e2e subproject
 ```
 
 ---
 
 ## Implementation Details
 
-### 1. Gradle Configuration (`build.gradle.kts`)
+### 1. Gradle Configuration
 
-Add e2e source set and Playwright dependency:
+The e2e tests are now in a separate Gradle subproject (`e2e/build.gradle.kts`):
 
 ```kotlin
-// Add after existing sourceSets or create new block
-sourceSets {
-    create("e2e") {
-        kotlin.srcDir("src/e2e/kotlin")
-        resources.srcDir("src/e2e/resources")
-        compileClasspath += sourceSets.main.get().output
-        runtimeClasspath += sourceSets.main.get().output
+plugins {
+    kotlin("jvm") version "2.3.0"
+}
+
+group = "app.qur"
+version = "0.0.1-SNAPSHOT"
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
-// Add e2e configuration
-val e2eImplementation by configurations.getting {
-    extendsFrom(configurations.implementation.get())
-}
-
-val e2eRuntimeOnly by configurations.getting {
-    extendsFrom(configurations.runtimeOnly.get())
+repositories {
+    mavenCentral()
 }
 
 dependencies {
-    // ... existing dependencies ...
-    
-    // E2E testing with Playwright
-    e2eImplementation("com.microsoft.playwright:playwright:1.49.0")
-    e2eImplementation("org.junit.jupiter:junit-jupiter:5.11.0")
+    testImplementation("com.microsoft.playwright:playwright:1.49.0")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.11.0")
+    testImplementation("org.jetbrains.kotlin:kotlin-test")
 }
 
-// E2E test task
-tasks.register<Test>("e2eTest") {
-    group = "verification"
-    description = "Run E2E tests with Playwright"
-    testClassesDirs = sourceSets["e2e"].output.classesDirs
-    classpath = sourceSets["e2e"].runtimeClasspath
+tasks.test {
     useJUnitPlatform()
-    
-    // Pass environment variables
+
     environment("HEADLESS", System.getenv("HEADLESS") ?: "true")
     environment("BASE_URL", System.getenv("BASE_URL") ?: "http://localhost:8080")
     environment("KEYCLOAK_URL", System.getenv("KEYCLOAK_URL") ?: "http://localhost:8081")
 }
 ```
 
-### 2. E2E Configuration (`src/e2e/resources/e2e.properties`)
+The root `settings.gradle.kts` includes the e2e subproject:
+
+```kotlin
+rootProject.name = "QuR"
+
+include("e2e")
+```
+
+### 2. E2E Configuration (`e2e/src/test/resources/e2e.properties`)
 
 ```properties
 # Application URLs
@@ -128,7 +128,7 @@ playwright.slow-mo=0
 playwright.timeout=30000
 ```
 
-### 3. Base Test Class (`src/e2e/kotlin/app/qur/e2e/E2ETestBase.kt`)
+### 3. Base Test Class (`e2e/src/test/kotlin/app/qur/e2e/E2ETestBase.kt`)
 
 ```kotlin
 package app.qur.e2e
@@ -197,7 +197,7 @@ abstract class E2ETestBase {
 
 ### 4. Page Objects
 
-#### LoginPage (`src/e2e/kotlin/app/qur/e2e/pages/LoginPage.kt`)
+#### LoginPage (`e2e/src/test/kotlin/app/qur/e2e/pages/LoginPage.kt`)
 
 ```kotlin
 package app.qur.e2e.pages
@@ -236,7 +236,7 @@ class LoginPage(private val page: Page, private val baseUrl: String) {
 }
 ```
 
-#### KeycloakLoginPage (`src/e2e/kotlin/app/qur/e2e/pages/KeycloakLoginPage.kt`)
+#### KeycloakLoginPage (`e2e/src/test/kotlin/app/qur/e2e/pages/KeycloakLoginPage.kt`)
 
 ```kotlin
 package app.qur.e2e.pages
@@ -270,7 +270,7 @@ class KeycloakLoginPage(private val page: Page) {
 }
 ```
 
-#### DashboardPage (`src/e2e/kotlin/app/qur/e2e/pages/DashboardPage.kt`)
+#### DashboardPage (`e2e/src/test/kotlin/app/qur/e2e/pages/DashboardPage.kt`)
 
 ```kotlin
 package app.qur.e2e.pages
@@ -319,7 +319,7 @@ class DashboardPage(private val page: Page, private val baseUrl: String) {
 }
 ```
 
-### 5. Auth Helper (`src/e2e/kotlin/app/qur/e2e/helpers/AuthHelper.kt`)
+### 5. Auth Helper (`e2e/src/test/kotlin/app/qur/e2e/helpers/AuthHelper.kt`)
 
 ```kotlin
 package app.qur.e2e.helpers
@@ -349,7 +349,7 @@ object AuthHelper {
 }
 ```
 
-### 6. Test Scenario (`src/e2e/kotlin/app/qur/e2e/scenarios/AuthenticationFlowTest.kt`)
+### 6. Test Scenario (`e2e/src/test/kotlin/app/qur/e2e/scenarios/AuthenticationFlowTest.kt`)
 
 ```kotlin
 package app.qur.e2e.scenarios
@@ -454,19 +454,19 @@ docker-compose logs -f keycloak-init
 ./gradlew bootRun
 
 # 4. In another terminal, run E2E tests
-./gradlew e2eTest
+./gradlew :e2e:test
 ```
 
 ### Running with Headed Browser (Debug Mode)
 
 ```bash
-HEADLESS=false ./gradlew e2eTest
+HEADLESS=false ./gradlew :e2e:test
 ```
 
 ### Running Specific Test
 
 ```bash
-./gradlew e2eTest --tests "AuthenticationFlowTest"
+./gradlew :e2e:test --tests "AuthenticationFlowTest"
 ```
 
 ---
@@ -493,17 +493,18 @@ Add Playwright installation script:
 | File | Action | Description |
 |------|--------|-------------|
 | `specs/e2e_plan.md` | Create | This plan document |
-| `build.gradle.kts` | Modify | Add e2e source set and dependencies |
+| `settings.gradle.kts` | Modify | Include e2e subproject |
+| `e2e/build.gradle.kts` | Create | E2E subproject build config |
 | `package.json` | Modify | Add playwright dev dependency and script |
-| `src/e2e/resources/e2e.properties` | Create | Test configuration |
-| `src/e2e/kotlin/app/qur/e2e/E2ETestBase.kt` | Create | Base test class |
-| `src/e2e/kotlin/app/qur/e2e/pages/LoginPage.kt` | Create | Login page object |
-| `src/e2e/kotlin/app/qur/e2e/pages/KeycloakLoginPage.kt` | Create | Keycloak page object |
-| `src/e2e/kotlin/app/qur/e2e/pages/DashboardPage.kt` | Create | Dashboard page object |
-| `src/e2e/kotlin/app/qur/e2e/helpers/AuthHelper.kt` | Create | Auth helper |
-| `src/e2e/kotlin/app/qur/e2e/scenarios/AuthenticationFlowTest.kt` | Create | Test scenarios |
+| `e2e/src/test/resources/e2e.properties` | Create | Test configuration |
+| `e2e/src/test/kotlin/app/qur/e2e/E2ETestBase.kt` | Create | Base test class |
+| `e2e/src/test/kotlin/app/qur/e2e/pages/LoginPage.kt` | Create | Login page object |
+| `e2e/src/test/kotlin/app/qur/e2e/pages/KeycloakLoginPage.kt` | Create | Keycloak page object |
+| `e2e/src/test/kotlin/app/qur/e2e/pages/DashboardPage.kt` | Create | Dashboard page object |
+| `e2e/src/test/kotlin/app/qur/e2e/helpers/AuthHelper.kt` | Create | Auth helper |
+| `e2e/src/test/kotlin/app/qur/e2e/scenarios/AuthenticationFlowTest.kt` | Create | Test scenarios |
 
-**Total: 10 files (2 modify, 8 create)**
+**Total: 11 files (2 modify, 9 create)**
 
 ---
 
@@ -536,7 +537,7 @@ docker-compose ps
 npx playwright install chromium --force
 
 # Run with debug logging
-DEBUG=pw:browser ./gradlew e2eTest
+DEBUG=pw:browser ./gradlew :e2e:test
 ```
 
 ### Test user login fails

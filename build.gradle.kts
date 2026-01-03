@@ -4,7 +4,6 @@ plugins {
 	id("org.springframework.boot") version "4.0.1"
 	id("io.spring.dependency-management") version "1.1.7"
 	id("org.graalvm.buildtools.native") version "0.11.1"
-	`jvm-test-suite`
 }
 
 group = "app"
@@ -73,28 +72,6 @@ tasks.register<Exec>("compileTailwind") {
 
 tasks.named("processResources") {
 	dependsOn("compileTailwind")
-}
-
-testing {
-	suites {
-		register<JvmTestSuite>("e2e") {
-			dependencies {
-				implementation(project())
-				implementation("com.microsoft.playwright:playwright:1.49.0")
-				implementation("org.junit.jupiter:junit-jupiter:5.11.0")
-				implementation("org.jetbrains.kotlin:kotlin-test")
-			}
-			targets {
-				all {
-					testTask.configure {
-						environment("HEADLESS", System.getenv("HEADLESS") ?: "true")
-						environment("BASE_URL", System.getenv("BASE_URL") ?: "http://localhost:8080")
-						environment("KEYCLOAK_URL", System.getenv("KEYCLOAK_URL") ?: "http://localhost:8081")
-					}
-				}
-			}
-		}
-	}
 }
 
 tasks.withType<Test> {
