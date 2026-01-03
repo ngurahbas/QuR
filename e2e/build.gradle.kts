@@ -24,6 +24,11 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 
+    // Disable by default - only run when explicitly called
+    enabled = project.hasProperty("e2e") || gradle.startParameter.taskNames.any {
+        it.contains(":e2e:") || it == "e2e:test"
+    }
+
     environment("HEADLESS", System.getenv("HEADLESS") ?: "true")
     environment("BASE_URL", System.getenv("BASE_URL") ?: "http://localhost:8080")
     environment("KEYCLOAK_URL", System.getenv("KEYCLOAK_URL") ?: "http://localhost:8081")

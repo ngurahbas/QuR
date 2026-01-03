@@ -1,5 +1,6 @@
 package app.qur.test
 
+import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientProperties
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
@@ -7,7 +8,6 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository
 import org.springframework.security.oauth2.core.AuthorizationGrantType
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames
-import app.qur.web.OAuth2ClientProperties
 import reactor.core.publisher.Mono
 
 @TestConfiguration
@@ -38,12 +38,7 @@ class TestOAuth2Config {
     @Primary
     fun testOAuth2ClientProperties(): OAuth2ClientProperties {
         return OAuth2ClientProperties(
-            registration = mapOf(
-                "keycloak" to OAuth2ClientProperties.Registration(
-                    provider = "keycloak",
-                    clientId = OAuth2MockServer.CLIENT_ID
-                )
-            )
+//TODO implementation pending
         )
     }
 }
