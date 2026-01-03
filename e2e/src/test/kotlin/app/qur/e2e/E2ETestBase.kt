@@ -2,6 +2,7 @@ package app.qur.e2e
 
 import com.microsoft.playwright.*
 import org.junit.jupiter.api.*
+import java.io.File
 import java.util.Properties
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -47,16 +48,18 @@ abstract class E2ETestBase {
 	}
 
 	@BeforeEach
-	fun setupContext() {
+	fun setupContext(testInfo: TestInfo) {
 		val recordVideo = System.getenv("RECORD_VIDEO")?.toBoolean() ?: false
-		val videoDir = System.getenv("VIDEO_DIR") ?: config.getProperty("playwright.video-dir", "build/videos")
+		val baseVideoDir = System.getenv("VIDEO_DIR") ?: config.getProperty("playwright.video-dir", "build/videos")
 
 		val contextOptions = Browser.NewContextOptions()
 			.setViewportSize(1600, 900)
 
 		if (recordVideo) {
-			java.io.File(videoDir).mkdirs()
-			contextOptions.setRecordVideoDir(java.nio.file.Paths.get(videoDir))
+			val testClassName = testInfo.testClass.map { it.simpleName }.orElse("UnknownTest")
+			val videoDir = File(baseVideoDir, testClassName)
+			videoDir.mkdirs()
+			contextOptions.setRecordVideoDir(videoDir.toPath())
 		}
 
 		context = browser.newContext(contextOptions)
@@ -67,8 +70,37 @@ abstract class E2ETestBase {
 	}
 
 	@AfterEach
-	fun teardownContext() {
-		context.close()
+	fun teardownContext(testInfo: TestInfo) {
+		val recordVideo = System.getenv("RECORD_VIDEO")?.toBoolean() ?: false
+
+		if (recordVideo) {
+			val video = page.video()
+			context.close()
+
+			video?.let {
+				try {
+					val videoPath = it.path()
+					val displayName = testInfo.displayName.ifEmpty {
+						testInfo.testMethod.map { m -> m.name }.orElse("unknown_test")
+					}
+					val sanitizedName = displayName.lowercase().replace(Regex("[^a-z0-9]+"), "_").trim('_')
+
+					val originalFile = videoPath.toFile()
+					val newFile = File(originalFile.parent, "$sanitizedName.webm")
+
+					if (originalFile.exists()) {
+						if (newFile.exists()) {
+							newFile.delete()
+						}
+						originalFile.renameTo(newFile)
+					}
+				} catch (e: Exception) {
+					System.err.println("Failed to rename video: ${e.message}")
+				}
+			}
+		} else {
+			context.close()
+		}
 	}
 
 	@AfterAll
