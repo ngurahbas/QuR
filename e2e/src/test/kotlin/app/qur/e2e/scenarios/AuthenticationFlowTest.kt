@@ -13,21 +13,13 @@ import kotlin.test.assertTrue
 class AuthenticationFlowTest : E2ETestBase() {
 
 	@Test
-	@DisplayName("Login page displays Keycloak provider")
-	fun `login page should display Keycloak provider`() {
+	@DisplayName("Login page displays Keycloak provider and completes OAuth2 login")
+	fun `login page should display Keycloak provider and complete OAuth2 login`() {
 		val loginPage = LoginPage(page, baseUrl)
 		loginPage.navigate()
 
 		loginPage.assertPageLoaded()
 		loginPage.assertKeycloakProviderVisible()
-	}
-
-	@Test
-	@DisplayName("Complete OAuth2 login flow reaches dashboard")
-	fun `should complete OAuth2 login and reach dashboard with user email`() {
-		val loginPage = LoginPage(page, baseUrl)
-		loginPage.navigate()
-		assertTrue(loginPage.isLoaded(), "Login page should be loaded")
 
 		val keycloakPage = loginPage.clickKeycloakLogin()
 		keycloakPage.waitForLoad()
