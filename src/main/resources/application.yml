@@ -33,12 +33,12 @@ spring:
               - profile
               - email
 
-jwt:
-  secret: ${JWT_SECRET:your-secret-key-please-change-this-in-production-must-be-at-least-256-bits}
-  expiration-hours: ${JWT_EXPIRATION_HOURS:24}
+secrets:
+  jwt: ${SECRET.JWT:your-secret-key-please-change-this-in-production-must-be-at-least-256-bits}
+  device: ${SECRET.DEVICE:default-device-key-change-in-production}
 
-device:
-  encryption-key: ${DEVICE_ENCRYPTION_KEY:default-device-key-change-in-production}
+jwt:
+  expiration-hours: ${JWT_EXPIRATION_HOURS:24}
 
 logging:
   level:

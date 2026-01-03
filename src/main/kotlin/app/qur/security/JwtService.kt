@@ -13,11 +13,11 @@ import javax.crypto.SecretKey
 
 @Service
 class JwtService(
-    @Value("\${jwt.secret}") private val secret: String,
+    private val secrets: Map<String, String>,
     @Value("\${jwt.expiration-hours:24}") private val expirationHours: Long
 ) {
     private val secretKey: SecretKey by lazy {
-        Keys.hmacShaKeyFor(secret.toByteArray())
+        Keys.hmacShaKeyFor(secrets["jwt"]!!.toByteArray())
     }
 
     fun generateToken(oidcUser: OidcUser): String {

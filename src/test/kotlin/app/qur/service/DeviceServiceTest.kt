@@ -5,7 +5,8 @@ import kotlin.test.assertEquals
 
 class DeviceServiceTest {
 
-    private val service = DeviceService("test-encryption-key")
+    private val secrets = mapOf("jwt" to "test-jwt-secret", "device" to "test-encryption-key")
+    private val service = DeviceService(secrets)
 
     @Test
     fun `encrypt and decrypt should recover original device`() {

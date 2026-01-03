@@ -2,6 +2,7 @@ package app.qur
 
 import app.qur.security.JwtAuthenticationWebFilter
 import app.qur.security.JwtOAuth2SuccessHandler
+import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder
@@ -28,5 +29,11 @@ class SecurityConfig(
             .addFilterAt(jwtAuthenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
             .csrf { csrf -> csrf.disable() }
             .build()
+    }
+
+    @Bean
+    @ConfigurationProperties(prefix = "secrets")
+    fun secrets(): MutableMap<String, String> {
+        return mutableMapOf()
     }
 }
