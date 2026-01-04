@@ -39,11 +39,8 @@ class QrController(
             }
             
             if (shouldSetCookie) {
-                val newDevice = Device(
-                    deviceId = UUID.randomUUID().toString(),
-                    deviceRole = DeviceRole.SETUP,
-                    expiredAt = LocalDateTime.now().plusHours(24)
-                )
+                val newDevice =
+                    Device(UUID.randomUUID().toString(), DeviceRole.SETUP, LocalDateTime.now().plusHours(24))
                 
                 val encryptedValue = deviceService.encryptAndSerialize(newDevice)
                 
