@@ -1,5 +1,6 @@
 package app.qur.service
 
+import app.qur.Secrets
 import org.springframework.stereotype.Service
 import java.security.MessageDigest
 import java.security.SecureRandom
@@ -10,7 +11,7 @@ import javax.crypto.spec.SecretKeySpec
 
 @Service
 class DeviceService(
-    private val secrets: Map<String, String>
+    private val secrets: Secrets
 ) {
     private val algorithm = "AES/GCM/NoPadding"
     private val gcmTagLength = 128
@@ -19,7 +20,7 @@ class DeviceService(
 
     fun encryptAndSerialize(device: Device): String {
         val plaintext = "${device.deviceId}$delimiter${device.deviceRole.name}"
-        val keyBytes = deriveKey(secrets["device"]!!)
+        val keyBytes = deriveKey(secrets.device)
         val secretKey = SecretKeySpec(keyBytes, "AES")
 
         val iv = ByteArray(gcmIvLength)
@@ -40,7 +41,7 @@ class DeviceService(
         val iv = combined.copyOfRange(0, gcmIvLength)
         val ciphertext = combined.copyOfRange(gcmIvLength, combined.size)
 
-        val keyBytes = deriveKey(secrets["device"]!!)
+        val keyBytes = deriveKey(secrets.device)
         val secretKey = SecretKeySpec(keyBytes, "AES")
 
         val cipher = Cipher.getInstance(algorithm)

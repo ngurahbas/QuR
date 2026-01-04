@@ -1,5 +1,6 @@
 package app.qur.security
 
+import app.qur.Secrets
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
@@ -13,11 +14,11 @@ import javax.crypto.SecretKey
 
 @Service
 class JwtService(
-    private val secrets: Map<String, String>,
+    private val secrets: Secrets,
     @Value("\${jwt.expiration-hours:24}") private val expirationHours: Long
 ) {
     private val secretKey: SecretKey by lazy {
-        Keys.hmacShaKeyFor(secrets["jwt"]!!.toByteArray())
+        Keys.hmacShaKeyFor(secrets.jwt.toByteArray())
     }
 
     fun generateToken(oidcUser: OidcUser): String {

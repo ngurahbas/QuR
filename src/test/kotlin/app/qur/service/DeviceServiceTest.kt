@@ -1,11 +1,12 @@
 package app.qur.service
 
+import app.qur.Secrets
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 class DeviceServiceTest {
 
-    private val secrets = mapOf("jwt" to "test-jwt-secret", "device" to "test-encryption-key")
+    private val secrets = Secrets("test-jwt-secret", "test-encryption-key")
     private val service = DeviceService(secrets)
 
     @Test
