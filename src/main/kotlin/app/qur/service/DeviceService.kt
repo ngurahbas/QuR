@@ -4,6 +4,8 @@ import app.qur.Secrets
 import org.springframework.stereotype.Service
 import java.security.MessageDigest
 import java.security.SecureRandom
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.Base64
 import javax.crypto.Cipher
 import javax.crypto.spec.GCMParameterSpec
@@ -19,7 +21,8 @@ class DeviceService(
     private val delimiter = "|"
 
     fun encryptAndSerialize(device: Device): String {
-        val plaintext = "${device.deviceId}$delimiter${device.deviceRole.name}"
+        val expiredAtStr = device.expiredAt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+        val plaintext = "${device.deviceId}$delimiter${device.deviceRole.name}$delimiter$expiredAtStr"
         val keyBytes = deriveKey(secrets.device)
         val secretKey = SecretKeySpec(keyBytes, "AES")
 
@@ -51,7 +54,8 @@ class DeviceService(
         val plaintext = String(decryptedBytes, Charsets.UTF_8)
 
         val parts = plaintext.split(delimiter)
-        return Device(deviceId = parts[0], deviceRole = DeviceRole.valueOf(parts[1]))
+        val expiredAt = LocalDateTime.parse(parts[2], DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+        return Device(deviceId = parts[0], deviceRole = DeviceRole.valueOf(parts[1]), expiredAt = expiredAt)
     }
 
     private fun deriveKey(key: String): ByteArray {
