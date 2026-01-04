@@ -41,6 +41,7 @@ Implementing 3 endpoints for device QR setup flow:
 | QR code content | approval_id only | Simple string, admin scans with phone |
 | Long polling timeout | 30 seconds | Balance between responsiveness and server load |
 | Redirect mechanism | HTMX `HX-Redirect` header | Project uses HTMX |
+| Approval notification | Redis Pub/Sub | Efficient real-time notification instead of polling |
 
 ## Files to Create/Modify
 
@@ -70,21 +71,25 @@ implementation("io.github.g0dkar:qrcode-kotlin:4.2.0")
 ```kotlin
 @Service
 class ApprovalService(
-    private val redisTemplate: ReactiveStringRedisTemplate
+    private val redisTemplate: ReactiveStringRedisTemplate,
+    private val redisConnectionFactory: ReactiveRedisConnectionFactory
 ) {
     companion object {
         private const val KEY_PREFIX = "approval:"
+        private const val CHANNEL_PREFIX = "approval:channel:"
         private val EXPIRATION = Duration.ofMinutes(5)
+        private val POLL_TIMEOUT = Duration.ofSeconds(30)
     }
 
     // Creates approval entry: approval:{id}:device -> deviceId
     fun createApproval(deviceId: String): Mono<String>
 
-    // Checks if role has been set: approval:{id}:role
-    // Returns null if pending, ApprovalResult if approved
-    fun checkApproval(approvalId: String): Mono<ApprovalResult?>
+    // First checks if already approved, if not subscribes to Redis pub/sub channel
+    // and waits up to 30 seconds for approval notification
+    // Returns ApprovalResult on approval, empty Mono on timeout
+    fun waitForApproval(approvalId: String): Mono<ApprovalResult>
 
-    // Sets role: approval:{id}:role -> newRole.name
+    // Sets role in Redis and publishes to channel to notify waiting subscribers
     // Returns false if approval_id doesn't exist
     fun approve(approvalId: String, newRole: DeviceRole): Mono<Boolean>
 
@@ -98,6 +103,17 @@ data class ApprovalResult(val deviceId: String, val newRole: DeviceRole)
 **Redis Key Structure:**
 - `approval:{approval_id}:device` -> deviceId (TTL: 5 min)
 - `approval:{approval_id}:role` -> role name (set when approved)
+
+**Redis Pub/Sub:**
+- Channel: `approval:channel:{approval_id}`
+- Message: role name (e.g., "QUEUE_DISPLAY")
+
+**Flow:**
+1. `waitForApproval()` first checks if `approval:{id}:role` exists (already approved)
+2. If not approved, subscribes to `approval:channel:{approval_id}` 
+3. Waits up to 30 seconds for a message
+4. `approve()` sets the role key AND publishes to the channel
+5. Subscriber receives message and returns ApprovalResult
 
 ### 3. `QrController.kt` - New Endpoints
 
@@ -121,12 +137,15 @@ fun checkApproval(
     @PathVariable approvalId: String,
     exchange: ServerWebExchange
 ): Mono<ResponseEntity<Void>> {
-    // Poll every 500ms for 30 seconds
+    // 1. First check if already approved (approval:{id}:role exists)
+    // 2. If not, subscribe to Redis pub/sub channel and wait up to 30s
     // On approval:
     //   - Update device cookie with new role
-    //   - Return HX-Redirect header based on role
+    //   - Return HX-Redirect header based on role:
+    //     - QUEUE_TAKING_QR_TARGET -> /qr/queue-taking
+    //     - QUEUE_DISPLAY -> /qr/queue-display
     //   - Cleanup Redis entry
-    // On timeout: Return 204 No Content
+    // On timeout: Return 204 No Content (client retries)
     // On not found: Return 404
 }
 ```
@@ -225,9 +244,10 @@ Add to permitAll paths:
 
 ### ApprovalServiceTest.kt
 - Test createApproval stores device ID in Redis
-- Test checkApproval returns null when pending
-- Test checkApproval returns ApprovalResult when approved
-- Test approve sets role and returns true
+- Test waitForApproval returns immediately if already approved
+- Test waitForApproval waits and returns ApprovalResult when approved via pub/sub
+- Test waitForApproval returns empty Mono on timeout
+- Test approve sets role, publishes to channel, and returns true
 - Test approve returns false for non-existent approval_id
 - Test cleanup removes keys
 
