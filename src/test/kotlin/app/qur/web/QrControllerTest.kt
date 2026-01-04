@@ -1,5 +1,6 @@
 package app.qur.web
 
+import app.qur.service.ApprovalService
 import app.qur.service.Device
 import app.qur.service.DeviceRole
 import app.qur.service.DeviceService
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Import
+import org.springframework.data.redis.core.ReactiveStringRedisTemplate
 import org.springframework.test.web.reactive.server.WebTestClient
 import java.time.Duration
 import java.time.LocalDateTime
@@ -24,11 +26,22 @@ class QrControllerTest {
     @Autowired
     private lateinit var deviceService: DeviceService
 
+    @Autowired
+    private lateinit var approvalService: ApprovalService
+
+    @Autowired
+    private lateinit var redisTemplate: ReactiveStringRedisTemplate
+
     private lateinit var webTestClient: WebTestClient
 
     @BeforeEach
     fun setUp() {
         webTestClient = WebTestClient.bindToApplicationContext(applicationContext).build()
+        
+        // Clean up Redis
+        redisTemplate.execute { connection ->
+            connection.serverCommands().flushDb()
+        }.blockLast()
     }
 
     @Test
@@ -147,5 +160,155 @@ class QrControllerTest {
             .exchange()
             .expectStatus().isOk
             .expectCookie().exists("device")
+    }
+
+    @Test
+    fun `GET qr setup should return QR code page for SETUP device`() {
+        val setupDevice = Device(
+            deviceId = "test-setup-device",
+            deviceRole = DeviceRole.SETUP,
+            expiredAt = LocalDateTime.now().plusHours(12)
+        )
+        val cookieValue = deviceService.encryptAndSerialize(setupDevice)
+
+        val body = webTestClient.get()
+            .uri("/qr/setup")
+            .cookie("device", cookieValue)
+            .exchange()
+            .expectStatus().isOk
+            .returnResult(String::class.java)
+            .responseBody
+            .collectList()
+            .block()
+            ?.joinToString("") ?: ""
+
+        assert(body.contains("Device Setup")) { "Page should contain 'Device Setup' title" }
+        assert(body.contains("qr-container")) { "Page should contain QR container" }
+        assert(body.contains("hx-get")) { "Page should have HTMX polling" }
+        assert(body.contains("/qr/setup/check/")) { "Page should poll the check endpoint" }
+    }
+
+    @Test
+    fun `GET qr setup should redirect for non-SETUP device`() {
+        val queueDevice = Device(
+            deviceId = "test-queue-device",
+            deviceRole = DeviceRole.QUEUE_DISPLAY,
+            expiredAt = LocalDateTime.now().plusHours(12)
+        )
+        val cookieValue = deviceService.encryptAndSerialize(queueDevice)
+
+        webTestClient.get()
+            .uri("/qr/setup")
+            .cookie("device", cookieValue)
+            .exchange()
+            .expectStatus().is3xxRedirection
+    }
+
+    @Test
+    fun `GET qr setup should redirect for missing device cookie`() {
+        webTestClient.get()
+            .uri("/qr/setup")
+            .exchange()
+            .expectStatus().is3xxRedirection
+    }
+
+    @Test
+    fun `GET qr setup check should return 204 on timeout`() {
+        val approvalId = approvalService.createApproval("test-device-timeout").block()!!
+
+        webTestClient.get()
+            .uri("/qr/setup/check/$approvalId")
+            .exchange()
+            .expectStatus().isNoContent
+    }
+
+    @Test
+    fun `GET qr setup check should return HX-Redirect on approval with QUEUE_DISPLAY`() {
+        val deviceId = "test-device-redirect-display"
+        val approvalId = approvalService.createApproval(deviceId).block()!!
+
+        // Approve in background after short delay
+        Thread {
+            Thread.sleep(1000)
+            approvalService.approve(approvalId, DeviceRole.QUEUE_DISPLAY).subscribe()
+        }.start()
+
+        val result = webTestClient.get()
+            .uri("/qr/setup/check/$approvalId")
+            .exchange()
+            .expectStatus().isOk
+            .expectHeader().valueEquals("HX-Redirect", "/qr/queue-display")
+            .expectCookie().exists("device")
+            .returnResult(Void::class.java)
+
+        // Verify device cookie was updated
+        val cookies = result.responseCookies
+        val deviceCookie = cookies.getFirst("device")
+        assert(deviceCookie != null) { "Device cookie should be set" }
+        
+        val device = deviceService.deserializeAndDecrypt(deviceCookie!!.value)
+        assert(device.deviceRole == DeviceRole.QUEUE_DISPLAY) { "Device role should be QUEUE_DISPLAY" }
+        assert(device.deviceId == deviceId) { "Device ID should match" }
+    }
+
+    @Test
+    fun `GET qr setup check should return HX-Redirect on approval with QUEUE_TAKING_QR_TARGET`() {
+        val deviceId = "test-device-redirect-qr-target"
+        val approvalId = approvalService.createApproval(deviceId).block()!!
+
+        // Approve in background after short delay
+        Thread {
+            Thread.sleep(1000)
+            approvalService.approve(approvalId, DeviceRole.QUEUE_TAKING_QR_TARGET).subscribe()
+        }.start()
+
+        val result = webTestClient.get()
+            .uri("/qr/setup/check/$approvalId")
+            .exchange()
+            .expectStatus().isOk
+            .expectHeader().valueEquals("HX-Redirect", "/qr/queue-taking")
+            .expectCookie().exists("device")
+            .returnResult(Void::class.java)
+
+        // Verify device cookie was updated
+        val cookies = result.responseCookies
+        val deviceCookie = cookies.getFirst("device")
+        assert(deviceCookie != null) { "Device cookie should be set" }
+        
+        val device = deviceService.deserializeAndDecrypt(deviceCookie!!.value)
+        assert(device.deviceRole == DeviceRole.QUEUE_TAKING_QR_TARGET) { "Device role should be QUEUE_TAKING_QR_TARGET" }
+        assert(device.deviceId == deviceId) { "Device ID should match" }
+    }
+
+    @Test
+    fun `GET qr setup check should return 404 for invalid approval_id`() {
+        webTestClient.get()
+            .uri("/qr/setup/check/invalid-approval-id-xyz")
+            .exchange()
+            .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `qr setup endpoints should be publicly accessible without authentication`() {
+        val setupDevice = Device(
+            deviceId = "test-public-device",
+            deviceRole = DeviceRole.SETUP,
+            expiredAt = LocalDateTime.now().plusHours(12)
+        )
+        val cookieValue = deviceService.encryptAndSerialize(setupDevice)
+
+        // /qr/setup should be accessible
+        webTestClient.get()
+            .uri("/qr/setup")
+            .cookie("device", cookieValue)
+            .exchange()
+            .expectStatus().isOk
+
+        // /qr/setup/check should be accessible
+        val approvalId = approvalService.createApproval("test-public-check").block()!!
+        webTestClient.get()
+            .uri("/qr/setup/check/$approvalId")
+            .exchange()
+            .expectStatus().isNoContent
     }
 }
