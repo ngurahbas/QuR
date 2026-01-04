@@ -19,7 +19,7 @@ class SecurityConfig(
         return http
             .authorizeExchange { exchanges ->
                 exchanges
-                    .pathMatchers("/", "/login", "/logins", "/error", "/css/**", "/js/**", "/images/**").permitAll()
+                    .pathMatchers("/", "/login", "/logins", "/qr", "/error", "/css/**", "/js/**", "/images/**").permitAll()
                     .anyExchange().authenticated()
             }
             .oauth2Login { oauth2 ->
